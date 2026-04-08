@@ -13,9 +13,12 @@ export default function RootLayout() {
         <Stack.Screen name="server/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="channel/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="dm/[id]" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="voice/[id]" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="friends" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="create-server" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="join-server" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="create-channel" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="server-settings/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
       </Stack>
     </AuthProvider>

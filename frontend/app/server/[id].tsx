@@ -113,6 +113,9 @@ export default function ServerDetailScreen() {
           <Text style={styles.headerTitle} numberOfLines={1}>{server?.name}</Text>
           <Text style={styles.headerSubtitle}>{members.length} members</Text>
         </View>
+        <TouchableOpacity testID="server-settings-btn" onPress={() => router.push(`/server-settings/${id}`)} style={styles.headerAction}>
+          <Ionicons name="settings-outline" size={22} color={Colors.text_secondary} />
+        </TouchableOpacity>
         <TouchableOpacity testID="invite-btn" onPress={handleGetInvite} style={styles.headerAction}>
           <Ionicons name="link-outline" size={22} color={Colors.text_secondary} />
         </TouchableOpacity>
@@ -186,6 +189,8 @@ export default function ServerDetailScreen() {
                 onPress={() => {
                   if (item.channel_type === 'text') {
                     router.push(`/channel/${item.channel_id}`);
+                  } else if (item.channel_type === 'voice') {
+                    router.push(`/voice/${item.channel_id}`);
                   }
                 }}
               >
@@ -195,6 +200,9 @@ export default function ServerDetailScreen() {
                   color={Colors.text_secondary}
                 />
                 <Text style={styles.channelName}>{item.name}</Text>
+                {item.channel_type === 'voice' && item.voice_participant_count > 0 && (
+                  <View style={styles.voiceBadge}><Text style={styles.voiceBadgeText}>{item.voice_participant_count}</Text></View>
+                )}
               </TouchableOpacity>
             );
           }}
@@ -236,6 +244,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   channelName: { fontSize: 15, color: Colors.text_secondary, fontWeight: '500' },
+  voiceBadge: { backgroundColor: Colors.success + '20', borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2 },
+  voiceBadgeText: { fontSize: 11, color: Colors.success, fontWeight: '700' },
   memberRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingVertical: 8, paddingHorizontal: 4,

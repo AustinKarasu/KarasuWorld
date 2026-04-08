@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import { api } from '@/src/api';
 import { Colors } from '@/src/colors';
 import { useAuth } from '@/src/AuthContext';
@@ -16,10 +17,13 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 interface Message {
   message_id: string;
+  channel_id?: string;
   sender_id: string;
   sender_username: string;
   content: string;
   message_type: string;
+  media_url?: string;
+  media_type?: string;
   reactions: Array<{ emoji: string; users: string[]; count: number }>;
   created_at: string;
 }
@@ -35,6 +39,8 @@ export default function ChannelChatScreen() {
   const [channelName, setChannelName] = useState('');
   const [typingUser, setTypingUser] = useState('');
   const [showReactions, setShowReactions] = useState<string | null>(null);
+  const [showStickers, setShowStickers] = useState(false);
+  const [stickers, setStickers] = useState<any[]>([]);
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,11 +108,47 @@ export default function ChannelChatScreen() {
     if (!input.trim()) return;
     const content = input.trim();
     setInput('');
+    setShowStickers(false);
     try {
       await api.post(`/api/channels/${id}/messages`, { content, message_type: 'text' });
     } catch (e) {
       console.error('Failed to send message:', e);
     }
+  };
+
+  const sendSticker = async (emoji: string) => {
+    setShowStickers(false);
+    try {
+      await api.post(`/api/channels/${id}/messages`, { content: emoji, message_type: 'sticker' });
+    } catch (e) {
+      console.error('Failed to send sticker:', e);
+    }
+  };
+
+  const pickAndSendImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
+    if (!result.canceled && result.assets[0].base64) {
+      try {
+        const uploadResp = await api.post('/api/upload', {
+          data: result.assets[0].base64,
+          filename: 'image.jpg',
+          content_type: 'image/jpeg',
+        });
+        await api.post(`/api/channels/${id}/messages`, {
+          content: '📷 Image', message_type: 'image',
+          media_url: uploadResp.url, media_type: 'image/jpeg',
+        });
+      } catch (e) {
+        console.error('Image upload failed:', e);
+      }
+    }
+  };
+
+  const loadStickers = async () => {
+    try {
+      const data = await api.get('/api/stickers');
+      setStickers(data.sticker_packs || []);
+    } catch {}
   };
 
   const handleTyping = () => {
@@ -158,7 +200,15 @@ export default function ChannelChatScreen() {
           </View>
         )}
         <View style={[styles.msgContent, !showHeader && { marginLeft: 44 }]}>
-          <Text style={styles.msgText}>{item.content}</Text>
+          {item.message_type === 'sticker' ? (
+            <Text style={styles.stickerMsg}>{item.content}</Text>
+          ) : item.message_type === 'image' && item.media_url ? (
+            <View>
+              <Image source={{ uri: `${BACKEND_URL}${item.media_url}` }} style={styles.mediaImage} resizeMode="cover" />
+            </View>
+          ) : (
+            <Text style={styles.msgText}>{item.content}</Text>
+          )}
         </View>
 
         {item.reactions && item.reactions.length > 0 && (
@@ -233,6 +283,12 @@ export default function ChannelChatScreen() {
         ) : null}
 
         <View style={styles.inputBar}>
+          <TouchableOpacity testID="sticker-btn" style={styles.attachBtn} onPress={() => { if (!stickers.length) loadStickers(); setShowStickers(!showStickers); }}>
+            <Ionicons name="happy-outline" size={22} color={showStickers ? Colors.primary : Colors.text_tertiary} />
+          </TouchableOpacity>
+          <TouchableOpacity testID="media-btn" style={styles.attachBtn} onPress={pickAndSendImage}>
+            <Ionicons name="image-outline" size={22} color={Colors.text_tertiary} />
+          </TouchableOpacity>
           <TextInput
             testID="chat-input"
             style={styles.chatInput}
@@ -241,7 +297,7 @@ export default function ChannelChatScreen() {
             placeholder="Type a message..."
             placeholderTextColor={Colors.text_tertiary}
             multiline
-            maxLength={2000}
+            maxLength={4000}
           />
           <TouchableOpacity
             testID="send-message-btn"
@@ -252,6 +308,25 @@ export default function ChannelChatScreen() {
             <Ionicons name="send" size={20} color={input.trim() ? '#FFF' : Colors.text_tertiary} />
           </TouchableOpacity>
         </View>
+
+        {showStickers && (
+          <View style={styles.stickerPicker}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stickerScroll}>
+              {stickers.map((pack, pi) => (
+                <View key={pi} style={styles.stickerPack}>
+                  <Text style={styles.stickerPackTitle}>{pack.pack}</Text>
+                  <View style={styles.stickerGrid}>
+                    {pack.stickers?.map((s: any) => (
+                      <TouchableOpacity key={s.id} style={styles.stickerItem} onPress={() => sendSticker(s.emoji)}>
+                        <Text style={styles.stickerEmoji}>{s.emoji}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -280,6 +355,8 @@ const styles = StyleSheet.create({
   msgTime: { fontSize: 11, color: Colors.text_tertiary },
   msgContent: { marginLeft: 44 },
   msgText: { fontSize: 15, color: Colors.text_primary, lineHeight: 21 },
+  stickerMsg: { fontSize: 48 },
+  mediaImage: { width: 200, height: 200, borderRadius: 12, marginTop: 4 },
   reactionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4, marginLeft: 44 },
   reactionBadge: {
     flexDirection: 'row', alignItems: 'center',
@@ -315,6 +392,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center',
   },
   sendBtnDisabled: { backgroundColor: Colors.surface },
+  attachBtn: { padding: 6, justifyContent: 'center', alignItems: 'center' },
+  stickerPicker: {
+    backgroundColor: Colors.bg_secondary, borderTopWidth: 1, borderTopColor: Colors.border,
+    maxHeight: 180,
+  },
+  stickerScroll: { padding: 8, gap: 16 },
+  stickerPack: { marginRight: 12 },
+  stickerPackTitle: { fontSize: 10, fontWeight: '700', color: Colors.text_tertiary, letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' },
+  stickerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  stickerItem: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 8, backgroundColor: Colors.surface },
+  stickerEmoji: { fontSize: 24 },
   emptyChat: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyChatText: { fontSize: 14, color: Colors.text_secondary },
 });

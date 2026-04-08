@@ -1,1 +1,88 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="23" time="5.829" timestamp="2026-04-08T16:09:05.697366+00:00" hostname="agent-env-8d62a6dd-71f9-486e-9b58-27b911c92043"><testcase classname="tests.test_auth.TestAuth" name="test_register_new_user" time="0.361" /><testcase classname="tests.test_auth.TestAuth" name="test_register_duplicate_email" time="0.330" /><testcase classname="tests.test_auth.TestAuth" name="test_login_admin" time="0.283" /><testcase classname="tests.test_auth.TestAuth" name="test_login_invalid_credentials" time="0.053" /><testcase classname="tests.test_auth.TestAuth" name="test_get_current_user" time="0.331" /><testcase classname="tests.test_auth.TestAuth" name="test_get_current_user_no_token" time="0.053" /><testcase classname="tests.test_channels.TestChannels" name="test_list_server_channels" time="0.558" /><testcase classname="tests.test_channels.TestChannels" name="test_create_channel" time="0.155" /><testcase classname="tests.test_dms.TestDMs" name="test_create_dm" time="0.608" /><testcase classname="tests.test_dms.TestDMs" name="test_list_dms" time="0.101" /><testcase classname="tests.test_dms.TestDMs" name="test_send_dm_message" time="0.111" /><testcase classname="tests.test_dms.TestDMs" name="test_get_dm_messages" time="0.144" /><testcase classname="tests.test_messages.TestMessages" name="test_send_message_in_channel" time="0.384" /><testcase classname="tests.test_messages.TestMessages" name="test_get_channel_messages" time="0.099" /><testcase classname="tests.test_messages.TestMessages" name="test_add_reaction_to_message" time="0.117" /><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_search_endpoint" time="0.428" /><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_update_user_profile" time="0.108" /><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_search_users" time="0.315" /><testcase classname="tests.test_servers.TestServers" name="test_create_server" time="0.317" /><testcase classname="tests.test_servers.TestServers" name="test_list_servers" time="0.104" /><testcase classname="tests.test_servers.TestServers" name="test_get_server_details" time="0.100" /><testcase classname="tests.test_servers.TestServers" name="test_join_server_with_invite" time="0.690" /><testcase classname="tests.test_servers.TestServers" name="test_join_server_invalid_invite" time="0.049" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="22" failures="7" skipped="0" tests="53" time="7.877" timestamp="2026-04-08T16:40:48.307567+00:00" hostname="agent-env-8d62a6dd-71f9-486e-9b58-27b911c92043"><testcase classname="tests.test_auth.TestAuth" name="test_register_new_user" time="0.453" /><testcase classname="tests.test_auth.TestAuth" name="test_register_duplicate_email" time="0.334" /><testcase classname="tests.test_auth.TestAuth" name="test_login_admin" time="0.279" /><testcase classname="tests.test_auth.TestAuth" name="test_login_invalid_credentials" time="0.052" /><testcase classname="tests.test_auth.TestAuth" name="test_get_current_user" time="0.321" /><testcase classname="tests.test_auth.TestAuth" name="test_get_current_user_no_token" time="0.048" /><testcase classname="tests.test_channels.TestChannels" name="test_list_server_channels" time="0.406" /><testcase classname="tests.test_channels.TestChannels" name="test_create_channel" time="0.117" /><testcase classname="tests.test_dms.TestDMs" name="test_create_dm" time="0.618" /><testcase classname="tests.test_dms.TestDMs" name="test_list_dms" time="0.137" /><testcase classname="tests.test_dms.TestDMs" name="test_send_dm_message" time="0.181" /><testcase classname="tests.test_dms.TestDMs" name="test_get_dm_messages" time="0.191" /><testcase classname="tests.test_friends.TestFriends" name="test_send_friend_request" time="0.625" /><testcase classname="tests.test_friends.TestFriends" name="test_list_friend_requests_incoming" time="0.058"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:57: in test_list_friend_requests_incoming
+    assert send_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_friends.TestFriends" name="test_accept_friend_request" time="0.051"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:80: in test_accept_friend_request
+    assert send_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_friends.TestFriends" name="test_list_friends" time="0.052"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:98: in test_list_friends
+    assert send_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_friends.TestFriends" name="test_decline_friend_request" time="0.056"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:124: in test_decline_friend_request
+    assert send_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_friends.TestFriends" name="test_remove_friend" time="0.058"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:148: in test_remove_friend
+    assert send_response.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_friends.TestFriends" name="test_cannot_friend_yourself" time="0.058" /><testcase classname="tests.test_friends.TestFriends" name="test_duplicate_friend_request" time="0.052"><failure message="assert 400 == 200&#10; +  where 400 = &lt;Response [400]&gt;.status_code">tests/test_friends.py:184: in test_duplicate_friend_request
+    assert response1.status_code == 200
+E   assert 400 == 200
+E    +  where 400 = &lt;Response [400]&gt;.status_code</failure></testcase><testcase classname="tests.test_messages.TestMessages" name="test_send_message_in_channel" time="0.393" /><testcase classname="tests.test_messages.TestMessages" name="test_get_channel_messages" time="0.113" /><testcase classname="tests.test_messages.TestMessages" name="test_add_reaction_to_message" time="0.105" /><testcase classname="tests.test_new_features.TestE2EEncryption" name="test_exchange_e2e_key" time="0.698" /><testcase classname="tests.test_new_features.TestE2EEncryption" name="test_get_e2e_keys" time="0.168" /><testcase classname="tests.test_new_features.TestPushNotifications" name="test_register_push_token" time="0.389" /><testcase classname="tests.test_new_features.TestPushNotifications" name="test_register_push_token_update" time="0.121" /><testcase classname="tests.test_new_features.TestMessageDeletion" name="test_delete_own_message" time="0.587" /><testcase classname="tests.test_new_features.TestMessageDeletion" name="test_delete_message_not_owner" time="0.328" /><testcase classname="tests.test_roles.TestRoles" name="test_create_role" time="0.341"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_list_roles" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_update_role" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_delete_role" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_cannot_delete_default_role" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_assign_member_roles" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_roles.TestRoles" name="test_role_permissions_check" time="0.001"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_roles.py:30: in server_owner_auth
+    assert server_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_search_endpoint" time="0.054"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_search_and_users.py:12: in auth_setup
+    assert login_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_update_user_profile" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_search_and_users.py:12: in auth_setup
+    assert login_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_search_and_users.TestSearchAndUsers" name="test_search_users" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_search_and_users.py:12: in auth_setup
+    assert login_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_servers.TestServers" name="test_create_server" time="0.058"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_servers.py:12: in auth_token
+    assert response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_servers.TestServers" name="test_list_servers" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_servers.py:12: in auth_token
+    assert response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_servers.TestServers" name="test_get_server_details" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_servers.py:12: in auth_token
+    assert response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_servers.TestServers" name="test_join_server_with_invite" time="0.052"><failure message="assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code">tests/test_servers.py:100: in test_join_server_with_invite
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</failure></testcase><testcase classname="tests.test_servers.TestServers" name="test_join_server_invalid_invite" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_servers.py:12: in auth_token
+    assert response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestVoiceChannels" name="test_join_voice_channel" time="0.052"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:20: in voice_setup
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestVoiceChannels" name="test_get_voice_participants" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:20: in voice_setup
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestVoiceChannels" name="test_toggle_voice_mute" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:20: in voice_setup
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestVoiceChannels" name="test_toggle_voice_deafen" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:20: in voice_setup
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestVoiceChannels" name="test_leave_voice_channel" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:20: in voice_setup
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestMediaAndStickers" name="test_get_stickers" time="0.049" /><testcase classname="tests.test_voice_and_media.TestMediaAndStickers" name="test_upload_media" time="0.061"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:184: in auth_user
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestMediaAndStickers" name="test_get_uploaded_file" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:184: in auth_user
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase><testcase classname="tests.test_voice_and_media.TestMediaAndStickers" name="test_upload_invalid_base64" time="0.000"><error message="failed on setup with &quot;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code&quot;">tests/test_voice_and_media.py:184: in auth_user
+    assert register_response.status_code == 200
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</error></testcase></testsuite></testsuites>

@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '@/src/api';
 import { Colors } from '@/src/colors';
 import { useAuth } from '@/src/AuthContext';
+import { encryptMessage, decryptMessage, getOrCreateDMKey } from '@/src/encryption';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
@@ -135,6 +136,10 @@ export default function DMChatScreen() {
           <Text style={styles.headerAvatarText}>{otherUser?.[0]?.toUpperCase() || '?'}</Text>
         </View>
         <Text style={styles.headerTitle}>{otherUser || 'Direct Message'}</Text>
+        <View style={styles.e2eBadge}>
+          <Ionicons name="lock-closed" size={12} color={Colors.success} />
+          <Text style={styles.e2eText}>E2EE</Text>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -207,6 +212,8 @@ const styles = StyleSheet.create({
   },
   headerAvatarText: { color: Colors.text_primary, fontSize: 14, fontWeight: '700' },
   headerTitle: { fontSize: 17, fontWeight: '700', color: Colors.text_primary, flex: 1 },
+  e2eBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.success + '15', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 },
+  e2eText: { fontSize: 10, fontWeight: '700', color: Colors.success, letterSpacing: 0.5 },
   messageList: { padding: 12, paddingBottom: 4, flexGrow: 1 },
   bubble: { maxWidth: '80%', marginBottom: 8, borderRadius: 18, padding: 12 },
   bubbleMe: {

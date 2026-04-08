@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/AuthContext';
 import { Colors } from '@/src/colors';
+import { api } from '@/src/api';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -19,12 +22,8 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-    setError('');
-    setLoading(true);
+    if (!email.trim() || !password.trim()) { setError('Please fill in all fields'); return; }
+    setError(''); setLoading(true);
     try {
       await login(email, password);
       router.replace('/(tabs)');
@@ -35,12 +34,20 @@ export default function LoginScreen() {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    try {
+      const redirectUrl = `${BACKEND_URL}/google-callback`;
+      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      await Linking.openURL(authUrl);
+    } catch (e) {
+      setError('Failed to open Google sign-in');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <View style={styles.logoContainer}>
@@ -59,51 +66,29 @@ export default function LoginScreen() {
 
           <View style={styles.form}>
             <Text style={styles.label}>EMAIL</Text>
-            <TextInput
-              testID="login-email-input"
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              placeholderTextColor={Colors.text_tertiary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+            <TextInput testID="login-email-input" style={styles.input} value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor={Colors.text_tertiary} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
 
             <Text style={styles.label}>PASSWORD</Text>
             <View style={styles.passwordContainer}>
-              <TextInput
-                testID="login-password-input"
-                style={styles.passwordInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor={Colors.text_tertiary}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                testID="toggle-password-btn"
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
-              >
+              <TextInput testID="login-password-input" style={styles.passwordInput} value={password} onChangeText={setPassword} placeholder="Enter your password" placeholderTextColor={Colors.text_tertiary} secureTextEntry={!showPassword} autoCapitalize="none" />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
                 <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={Colors.text_tertiary} />
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              testID="login-submit-btn"
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              {loading ? (
-                <ActivityIndicator color="#FFF" size="small" />
-              ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
-              )}
+            <TouchableOpacity testID="login-submit-btn" style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading} activeOpacity={0.8}>
+              {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.buttonText}>Sign In</Text>}
+            </TouchableOpacity>
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity testID="google-auth-btn" style={styles.googleBtn} onPress={handleGoogleAuth} activeOpacity={0.8}>
+              <Ionicons name="logo-google" size={20} color="#FFF" />
+              <Text style={styles.googleBtnText}>Continue with Google</Text>
             </TouchableOpacity>
           </View>
 
@@ -124,42 +109,24 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   header: { alignItems: 'center', marginBottom: 40 },
-  logoContainer: {
-    width: 80, height: 80, borderRadius: 20,
-    backgroundColor: Colors.bg_tertiary, justifyContent: 'center',
-    alignItems: 'center', marginBottom: 16,
-    borderWidth: 1, borderColor: Colors.border,
-  },
+  logoContainer: { width: 80, height: 80, borderRadius: 20, backgroundColor: Colors.bg_tertiary, justifyContent: 'center', alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: Colors.border },
   title: { fontSize: 32, fontWeight: '900', color: Colors.text_primary, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, color: Colors.text_secondary, marginTop: 8 },
   form: { gap: 4 },
-  label: {
-    fontSize: 11, fontWeight: '700', color: Colors.text_secondary,
-    letterSpacing: 1, marginBottom: 6, marginTop: 16,
-  },
-  input: {
-    backgroundColor: Colors.bg_secondary, borderWidth: 1,
-    borderColor: Colors.border, borderRadius: 8, padding: 14,
-    color: Colors.text_primary, fontSize: 15,
-  },
-  passwordContainer: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.bg_secondary, borderWidth: 1,
-    borderColor: Colors.border, borderRadius: 8,
-  },
+  label: { fontSize: 11, fontWeight: '700', color: Colors.text_secondary, letterSpacing: 1, marginBottom: 6, marginTop: 16 },
+  input: { backgroundColor: Colors.bg_secondary, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, padding: 14, color: Colors.text_primary, fontSize: 15 },
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.bg_secondary, borderWidth: 1, borderColor: Colors.border, borderRadius: 8 },
   passwordInput: { flex: 1, padding: 14, color: Colors.text_primary, fontSize: 15 },
   eyeBtn: { padding: 14 },
-  button: {
-    backgroundColor: Colors.primary, borderRadius: 8,
-    padding: 16, alignItems: 'center', marginTop: 24,
-  },
+  button: { backgroundColor: Colors.primary, borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  errorBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,59,48,0.1)', borderRadius: 8,
-    padding: 12, marginBottom: 8,
-  },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  dividerText: { color: Colors.text_tertiary, fontSize: 12, fontWeight: '600', marginHorizontal: 12 },
+  googleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#4285F4', borderRadius: 8, padding: 14 },
+  googleBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,59,48,0.1)', borderRadius: 8, padding: 12, marginBottom: 8 },
   errorText: { color: Colors.error, fontSize: 13, flex: 1 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },
   footerText: { color: Colors.text_secondary, fontSize: 14 },

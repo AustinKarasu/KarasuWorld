@@ -1,0 +1,27 @@
+{
+  "google_auth": {
+    "use_emergent_auth": true,
+    "client_id": "",
+    "client_secret": "",
+    "redirect_uri": ""
+  },
+  "supabase": {
+    "enabled": false,
+    "url": "",
+    "anon_key": "",
+    "bucket": "karasuworld-media"
+  },
+  "gif_providers": {
+    "giphy_api_key": "",
+    "tenor_api_key": ""
+  },
+  "push_notifications": {
+    "expo_access_token": ""
+  },
+  "security": {
+    "rate_limit_per_minute": 60,
+    "max_upload_size_mb": 10,
+    "max_message_length": 4000,
+    "allowed_origins": ["*"]
+  }
+}
