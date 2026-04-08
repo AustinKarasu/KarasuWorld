@@ -1,0 +1,110 @@
+{
+  "project_name": "KarasuWorld",
+  "theme": "Dark",
+  "archetype": "Archetype 2: The Performance Pro (Elite & Precision, Dark Mode)",
+  "rationale": "For a Discord-inspired community app, 'Performance Pro' offers the deep obsidian blacks required for long sessions (eye strain reduction) while providing a high-visibility 'Tactical' look for data clarity (channels, status, text). Volt Blue acts as the kinetic trigger for notifications and active states without overwhelming the user.",
+  "colors": {
+    "background_primary": "#0A0A0A",
+    "background_secondary": "#141414",
+    "background_tertiary": "#1E1E1E",
+    "surface": "#1A1A1A",
+    "surface_hover": "#262626",
+    "primary": "#007AFF",
+    "primary_hover": "#3395FF",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A3A3A3",
+    "text_tertiary": "#737373",
+    "border": "#262626",
+    "divider": "#262626",
+    "success": "#34C759",
+    "error": "#FF3B30",
+    "warning": "#FFCC00",
+    "online_status": "#34C759",
+    "offline_status": "#737373",
+    "dnd_status": "#FF3B30"
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Chivo",
+      "body": "Manrope",
+      "mono": "JetBrains Mono"
+    },
+    "sizes": {
+      "h1": "text-4xl tracking-tight leading-tight font-black",
+      "h2": "text-2xl tracking-tight leading-snug font-bold",
+      "h3": "text-xl tracking-tight leading-snug font-bold",
+      "body_large": "text-base leading-relaxed font-medium",
+      "body": "text-sm leading-relaxed font-normal",
+      "label": "text-xs tracking-[0.05em] uppercase font-bold text-[#A3A3A3]"
+    }
+  },
+  "spacing_and_layout": {
+    "container_padding": "p-4",
+    "gap_small": "gap-2",
+    "gap_medium": "gap-4",
+    "gap_large": "gap-6",
+    "border_radius": {
+      "small": "rounded-sm",
+      "medium": "rounded-md",
+      "large": "rounded-xl",
+      "full": "rounded-full"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#007AFF] text-white font-bold rounded-md px-4 py-3 active:opacity-80 flex-row justify-center items-center",
+      "secondary": "bg-[#262626] text-white font-bold rounded-md px-4 py-3 active:opacity-80 flex-row justify-center items-center",
+      "ghost": "bg-transparent text-[#A3A3A3] font-bold rounded-md px-4 py-3 active:bg-[#1A1A1A] flex-row justify-center items-center"
+    },
+    "inputs": {
+      "default": "bg-[#141414] border border-[#262626] text-white rounded-md px-4 py-3 placeholder:text-[#737373] focus:border-[#007AFF]"
+    },
+    "chat_bubbles": {
+      "user": "bg-[#007AFF] text-white rounded-t-xl rounded-bl-xl rounded-br-sm p-3",
+      "other": "bg-[#1A1A1A] border border-[#262626] text-[#FFFFFF] rounded-t-xl rounded-br-xl rounded-bl-sm p-3"
+    },
+    "server_icon": {
+      "default": "w-12 h-12 rounded-xl bg-[#1E1E1E] border border-[#262626] justify-center items-center overflow-hidden",
+      "active": "w-12 h-12 rounded-[16px] bg-[#007AFF] justify-center items-center overflow-hidden border-2 border-[#007AFF]"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism_note": "In React Native Expo, use Expo BlurView (intensity 80, tint dark) or transparent rgba backgrounds (e.g., rgba(10,10,10,0.85)) for floating headers and bottom tabs.",
+    "borders": "Always use 1px borders (#262626) to separate dark surfaces. Do not let surfaces blend into each other without structural borders."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "url": "https://images.pexels.com/photos/7429526/pexels-photo-7429526.jpeg",
+        "category": "auth_background",
+        "description": "Abstract neon streaks for Auth/Login screen background to give a dynamic, modern feel."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1611269186548-12fd2f937619",
+        "category": "avatar_1",
+        "description": "User avatar for profiles and member list (Woman in dark hoodie)."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1615276884890-2f2ffdab7b43",
+        "category": "avatar_2",
+        "description": "User avatar for direct messages or contacts (Man in glasses)."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1613576855630-82ff3c46076e",
+        "category": "server_banner",
+        "description": "Karasu silhouette image for the default server banner or empty state illustration."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Design specifically for Expo React Native using standard .js files (no .tsx). Utilize NativeWind for styling with the provided Tailwind class equivalents, or map them manually via StyleSheet.",
+    "Follow Archetype 2 (Performance Pro) strictly: Base background must be Deep Obsidian (#0A0A0A) with surface layers stepping up slightly (#141414, #1A1A1A).",
+    "Do NOT use Inter for fonts. Use 'Chivo' (or closest equivalent) for headers and 'Manrope' for body text.",
+    "The layout requires a Server List (typically a left drawer or flat list on the side) and a Channel List next to it. Since it's mobile, use a Drawer navigator for the Server/Channel list, or a dedicated screen flow.",
+    "Use Phosphor Icons (phosphor-react-native) or lucide-react-native. They provide the sharp, technical look required for this app.",
+    "MANDATORY: Every interactive element (buttons, text inputs, server icons, channel rows, message rows) MUST include a 'data-testid' attribute (e.g., 'login-button', 'server-icon-1', 'chat-input').",
+    "Never use generic placeholder images (like via.placeholder). Use only the URLs from the media section.",
+    "Ensure input fields have an active/focus state utilizing the Volt Blue (#007AFF) border color.",
+    "To achieve a true 'app' feel, minimize borders on the main chat scrollview, but keep structural borders (1px solid #262626) on the top header and bottom input area."
+  ]
+}
