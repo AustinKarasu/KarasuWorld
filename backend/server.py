@@ -4,12 +4,21 @@ load_dotenv()
 import socketio
 from fastapi import FastAPI, HTTPException, Request, Depends
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os, json, logging, bcrypt, jwt, uuid, secrets, re, time, base64, hashlib, httpx
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
 from collections import defaultdict
+
+try:
+    from .pg_document_store import PGDatabase
+except Exception:
+    from pg_document_store import PGDatabase
+
+try:
+    from motor.motor_asyncio import AsyncIOMotorClient
+except Exception:
+    AsyncIOMotorClient = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,10 +28,25 @@ CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 with open(CONFIG_PATH) as f:
     CONFIG = json.load(f)
 
-# MongoDB
-mongo_url = os.environ['MONGO_URL']
-db_client = AsyncIOMotorClient(mongo_url)
-db = db_client[os.environ.get('DB_NAME', 'karasuworld')]
+# Database (Postgres preferred, Mongo fallback)
+database_url = (
+    os.environ.get("SUPABASE_DATABASE_URL")
+    or os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+)
+if database_url:
+    db_client = PGDatabase(database_url)
+    db = db_client
+    logger.info("Using PostgreSQL document store")
+else:
+    mongo_url = os.environ.get("MONGO_URL")
+    if not mongo_url:
+        raise RuntimeError("Set SUPABASE_DATABASE_URL/DATABASE_URL or MONGO_URL")
+    if AsyncIOMotorClient is None:
+        raise RuntimeError("motor is not installed, cannot use MongoDB fallback")
+    db_client = AsyncIOMotorClient(mongo_url)
+    db = db_client[os.environ.get('DB_NAME', 'karasuworld')]
+    logger.info("Using MongoDB")
 
 JWT_SECRET = os.environ.get('JWT_SECRET', secrets.token_hex(32))
 JWT_ALGORITHM = "HS256"
@@ -99,6 +123,13 @@ class ServerCreate(BaseModel):
     name: str
     description: str = ""
     icon_letter: str = ""
+
+class ServerUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    icon_letter: Optional[str] = None
+    icon_base64: Optional[str] = None
+    banner_base64: Optional[str] = None
 
 class ChannelCreate(BaseModel):
     name: str
@@ -450,6 +481,40 @@ async def get_server(server_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Not a member")
     server["my_role"] = membership["role"]
     return {"server": server}
+
+@fastapi_app.put("/api/servers/{server_id}")
+async def update_server(server_id: str, req: ServerUpdate, user: dict = Depends(get_current_user)):
+    perms = await get_user_server_permissions(user["user_id"], server_id)
+    if not has_permission(perms, "manage_server"):
+        raise HTTPException(status_code=403, detail="Missing manage_server permission")
+    server = await db.servers.find_one({"server_id": server_id}, {"_id": 0})
+    if not server:
+        raise HTTPException(status_code=404, detail="Server not found")
+
+    update_fields = {}
+    if req.name is not None:
+        name = sanitize_input(req.name)
+        if not name:
+            raise HTTPException(status_code=400, detail="Server name is required")
+        update_fields["name"] = name[:100]
+        update_fields["icon_letter"] = name[0].upper()
+    if req.description is not None:
+        update_fields["description"] = sanitize_input(req.description)[:500]
+    if req.icon_letter is not None:
+        letter = sanitize_input(req.icon_letter)
+        update_fields["icon_letter"] = (letter[:1] if letter else "")
+    if req.icon_base64 is not None:
+        update_fields["icon_base64"] = req.icon_base64
+    if req.banner_base64 is not None:
+        update_fields["banner_base64"] = req.banner_base64
+
+    if update_fields:
+        await db.servers.update_one({"server_id": server_id}, {"$set": update_fields})
+    updated = await db.servers.find_one({"server_id": server_id}, {"_id": 0})
+    membership = await db.server_members.find_one({"server_id": server_id, "user_id": user["user_id"]}, {"_id": 0})
+    if membership:
+        updated["my_role"] = membership["role"]
+    return {"server": updated}
 
 @fastapi_app.post("/api/servers/join")
 async def join_server(req: JoinServerRequest, user: dict = Depends(get_current_user)):
@@ -1155,6 +1220,12 @@ async def voice_ice_candidate(sid, data):
 @fastapi_app.on_event("startup")
 async def startup():
     logger.info("Starting KarasuWorld API...")
+    is_serverless = bool(os.environ.get("VERCEL"))
+    if is_serverless:
+        logger.info("Serverless runtime detected, skipping heavy bootstrap")
+        return
+    if hasattr(db_client, "connect"):
+        await db_client.connect()
     await db.users.create_index("email", unique=True)
     await db.users.create_index("user_id", unique=True)
     await db.users.create_index("username")
@@ -1191,14 +1262,22 @@ async def startup():
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
         logger.info(f"Admin seeded: {admin_email}")
-    os.makedirs("/app/memory", exist_ok=True)
-    with open("/app/memory/test_credentials.md", "w") as f:
-        f.write(f"# KarasuWorld Test Credentials\n\n## Admin\n- Email: {admin_email}\n- Password: {admin_password}\n\n## Test User\n- Email: testuser@test.com\n- Password: Test123!!\n")
+    memory_dir = os.environ.get("MEMORY_DIR", "/app/memory")
+    try:
+        os.makedirs(memory_dir, exist_ok=True)
+        with open(os.path.join(memory_dir, "test_credentials.md"), "w") as f:
+            f.write(f"# KarasuWorld Test Credentials\n\n## Admin\n- Email: {admin_email}\n- Password: {admin_password}\n\n## Test User\n- Email: testuser@test.com\n- Password: Test123!!\n")
+    except Exception as mem_err:
+        logger.warning(f"Unable to write test credentials file: {mem_err}")
     logger.info("KarasuWorld API started successfully")
 
 @fastapi_app.on_event("shutdown")
 async def shutdown():
-    db_client.close()
+    maybe_close = getattr(db_client, "close", None)
+    if maybe_close:
+        maybe_result = maybe_close()
+        if hasattr(maybe_result, "__await__"):
+            await maybe_result
 
 # CORS
 fastapi_app.add_middleware(

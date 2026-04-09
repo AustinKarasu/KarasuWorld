@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { io } from 'socket.io-client';
 import { api } from '@/src/api';
 import { Colors } from '@/src/colors';
 import { useAuth } from '@/src/AuthContext';
@@ -17,6 +18,7 @@ interface VoiceParticipant {
 export default function VoiceChannelScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [joined, setJoined] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -25,8 +27,41 @@ export default function VoiceChannelScreen() {
 
   useEffect(() => {
     loadParticipants();
-    return () => { if (joined) leaveVoice(); };
+    if (!BACKEND_URL) {
+      return () => {};
+    }
+
+    const socket = io(BACKEND_URL, {
+      path: '/api/socket.io',
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('connect', () => {
+      socket.emit('join_voice', { channel_id: id });
+    });
+    socket.on('voice_update', (payload: { channel_id: string; participants: VoiceParticipant[] }) => {
+      if (payload?.channel_id === id) {
+        setParticipants(payload.participants || []);
+      }
+    });
+    socket.on('voice_user_joined', () => loadParticipants());
+    socket.on('voice_user_left', () => loadParticipants());
+
+    const pollTimer = setInterval(loadParticipants, 5000);
+    return () => {
+      clearInterval(pollTimer);
+      socket.emit('leave_voice', { channel_id: id });
+      socket.disconnect();
+    };
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (joined) {
+        leaveVoice();
+      }
+    };
+  }, [joined]);
 
   const loadParticipants = async () => {
     try {
@@ -68,9 +103,10 @@ export default function VoiceChannelScreen() {
   const toggleDeafen = async () => {
     const newDeafened = !deafened;
     setDeafened(newDeafened);
+    const nextMuted = newDeafened || muted;
     if (newDeafened && !muted) setMuted(true);
     try {
-      const data = await api.post(`/api/channels/${id}/voice/toggle`, { deafened: newDeafened, muted: newDeafened || muted });
+      const data = await api.post(`/api/channels/${id}/voice/toggle`, { deafened: newDeafened, muted: nextMuted });
       setParticipants(data.participants || []);
     } catch {}
   };

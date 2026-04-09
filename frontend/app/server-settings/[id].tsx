@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, FlatList, TextInput, Alert, ScrollView,
+  View, Text, TouchableOpacity, StyleSheet, FlatList, TextInput, Alert, ScrollView, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { api } from '@/src/api';
 import { Colors } from '@/src/colors';
 
@@ -28,6 +29,10 @@ const PERMISSION_LIST = [
 
 export default function ServerSettingsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [serverName, setServerName] = useState('');
+  const [serverDescription, setServerDescription] = useState('');
+  const [serverIconBase64, setServerIconBase64] = useState('');
+  const [serverBannerBase64, setServerBannerBase64] = useState('');
   const [roles, setRoles] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [selectedRole, setSelectedRole] = useState<any>(null);
@@ -41,12 +46,57 @@ export default function ServerSettingsScreen() {
 
   const loadData = async () => {
     try {
-      const [rolesData, membersData] = await Promise.all([
+      const [serverData, rolesData, membersData] = await Promise.all([
+        api.get(`/api/servers/${id}`),
         api.get(`/api/servers/${id}/roles`),
         api.get(`/api/servers/${id}/members`),
       ]);
+      const server = serverData.server || {};
+      setServerName(server.name || '');
+      setServerDescription(server.description || '');
+      setServerIconBase64(server.icon_base64 || '');
+      setServerBannerBase64(server.banner_base64 || '');
       setRoles(rolesData.roles || []);
       setMembers(membersData.members || []);
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    }
+  };
+
+  const pickServerImage = async (type: 'icon' | 'banner') => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Please allow media library access.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.75,
+      base64: true,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    const asset = result.assets[0];
+    if (!asset.base64) return;
+    const mime = asset.mimeType || 'image/jpeg';
+    const dataUri = `data:${mime};base64,${asset.base64}`;
+    if (type === 'icon') {
+      setServerIconBase64(dataUri);
+    } else {
+      setServerBannerBase64(dataUri);
+    }
+  };
+
+  const saveServerSettings = async () => {
+    try {
+      await api.put(`/api/servers/${id}`, {
+        name: serverName.trim(),
+        description: serverDescription,
+        icon_base64: serverIconBase64,
+        banner_base64: serverBannerBase64,
+      });
+      Alert.alert('Saved', 'Server settings updated successfully.');
+      loadData();
     } catch (e: any) {
       Alert.alert('Error', e.message);
     }
@@ -106,6 +156,43 @@ export default function ServerSettingsScreen() {
 
       {tab === 'roles' ? (
         <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>SERVER PROFILE</Text>
+            <TouchableOpacity style={styles.serverBannerPicker} onPress={() => pickServerImage('banner')}>
+              {serverBannerBase64 ? (
+                <Image source={{ uri: serverBannerBase64 }} style={styles.serverBannerImage} />
+              ) : (
+                <View style={styles.serverBannerPlaceholder}>
+                  <Ionicons name="image-outline" size={22} color={Colors.text_tertiary} />
+                  <Text style={styles.serverBannerText}>Tap to upload server banner</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <View style={styles.serverIconRow}>
+              <TouchableOpacity style={styles.serverIconPicker} onPress={() => pickServerImage('icon')}>
+                {serverIconBase64 ? (
+                  <Image source={{ uri: serverIconBase64 }} style={styles.serverIconImage} />
+                ) : (
+                  <Text style={styles.serverIconText}>{serverName?.[0]?.toUpperCase() || 'S'}</Text>
+                )}
+              </TouchableOpacity>
+              <View style={{ flex: 1, gap: 8 }}>
+                <TextInput style={styles.input} value={serverName} onChangeText={setServerName} placeholder="Server name" placeholderTextColor={Colors.text_tertiary} />
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  value={serverDescription}
+                  onChangeText={setServerDescription}
+                  placeholder="Server description"
+                  placeholderTextColor={Colors.text_tertiary}
+                  multiline
+                />
+              </View>
+            </View>
+            <TouchableOpacity style={styles.createBtn} onPress={saveServerSettings}>
+              <Text style={styles.createBtnText}>Save Server Profile</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Create New Role */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>CREATE NEW ROLE</Text>
@@ -187,6 +274,15 @@ const styles = StyleSheet.create({
   section: { backgroundColor: Colors.surface, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: Colors.border, gap: 8 },
   sectionTitle: { fontSize: 11, fontWeight: '700', color: Colors.text_tertiary, letterSpacing: 1, marginTop: 8, marginBottom: 4 },
   input: { backgroundColor: Colors.bg_secondary, borderWidth: 1, borderColor: Colors.border, borderRadius: 8, padding: 12, color: Colors.text_primary, fontSize: 15 },
+  multilineInput: { minHeight: 74, textAlignVertical: 'top' },
+  serverBannerPicker: { width: '100%', height: 120, borderRadius: 10, backgroundColor: Colors.bg_secondary, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
+  serverBannerImage: { width: '100%', height: '100%' },
+  serverBannerPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 },
+  serverBannerText: { fontSize: 12, color: Colors.text_tertiary },
+  serverIconRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  serverIconPicker: { width: 72, height: 72, borderRadius: 16, backgroundColor: Colors.bg_secondary, borderWidth: 1, borderColor: Colors.border, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  serverIconImage: { width: '100%', height: '100%' },
+  serverIconText: { color: Colors.text_primary, fontSize: 28, fontWeight: '700' },
   colorRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   colorDot: { width: 28, height: 28, borderRadius: 14 },
   colorDotActive: { borderWidth: 3, borderColor: '#FFF' },
