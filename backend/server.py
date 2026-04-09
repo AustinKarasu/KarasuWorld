@@ -95,9 +95,6 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-class GoogleAuthRequest(BaseModel):
-    session_id: str
-
 class ServerCreate(BaseModel):
     name: str
     description: str = ""
@@ -293,60 +290,6 @@ async def refresh_token(request: Request):
         raise HTTPException(status_code=401, detail="Refresh token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-@fastapi_app.post("/api/auth/google")
-async def google_auth(req: GoogleAuthRequest):
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": req.session_id}
-            )
-            if resp.status_code != 200:
-                raise HTTPException(status_code=401, detail="Invalid Google session")
-            google_data = resp.json()
-    except httpx.HTTPError:
-        raise HTTPException(status_code=500, detail="Failed to verify Google session")
-
-    email = google_data.get("email", "").lower()
-    name = google_data.get("name", email.split("@")[0])
-    picture = google_data.get("picture", "")
-    session_token = google_data.get("session_token", "")
-
-    existing = await db.users.find_one({"email": email}, {"_id": 0})
-    if existing:
-        user_id = existing["user_id"]
-        await db.users.update_one(
-            {"user_id": user_id},
-            {"$set": {"display_name": name, "status": "online"}}
-        )
-    else:
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
-        await db.users.insert_one({
-            "user_id": user_id, "email": email, "username": name.replace(" ", "_").lower()[:32],
-            "display_name": name, "password_hash": "",
-            "bio": "", "avatar_base64": "", "banner_base64": "",
-            "status": "online", "custom_status": "", "role": "member",
-            "google_picture": picture,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-
-    if session_token:
-        await db.user_sessions.update_one(
-            {"session_token": session_token},
-            {"$set": {
-                "user_id": user_id, "session_token": session_token,
-                "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
-                "created_at": datetime.now(timezone.utc).isoformat(),
-            }},
-            upsert=True
-        )
-
-    access_token = create_access_token(user_id, email)
-    refresh_token = create_refresh_token(user_id)
-    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
-    return {"user": user, "access_token": access_token, "refresh_token": refresh_token}
 
 # ============ FRIEND SYSTEM ============
 @fastapi_app.post("/api/friends/request")

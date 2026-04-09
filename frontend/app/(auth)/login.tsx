@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Linking,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/AuthContext';
 import { Colors } from '@/src/colors';
-import { api } from '@/src/api';
-
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -31,17 +28,6 @@ export default function LoginScreen() {
       setError(e.message || 'Login failed');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGoogleAuth = async () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    try {
-      const redirectUrl = `${BACKEND_URL}/google-callback`;
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-      await Linking.openURL(authUrl);
-    } catch (e) {
-      setError('Failed to open Google sign-in');
     }
   };
 
@@ -80,20 +66,10 @@ export default function LoginScreen() {
               {loading ? <ActivityIndicator color="#FFF" size="small" /> : <Text style={styles.buttonText}>Sign In</Text>}
             </TouchableOpacity>
 
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity testID="google-auth-btn" style={styles.googleBtn} onPress={handleGoogleAuth} activeOpacity={0.8}>
-              <Ionicons name="logo-google" size={20} color="#FFF" />
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
             <TouchableOpacity testID="go-to-register-btn" onPress={() => router.push('/(auth)/register')}>
               <Text style={styles.footerLink}>Sign Up</Text>
             </TouchableOpacity>
@@ -121,11 +97,6 @@ const styles = StyleSheet.create({
   button: { backgroundColor: Colors.primary, borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerText: { color: Colors.text_tertiary, fontSize: 12, fontWeight: '600', marginHorizontal: 12 },
-  googleBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#4285F4', borderRadius: 8, padding: 14 },
-  googleBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(255,59,48,0.1)', borderRadius: 8, padding: 12, marginBottom: 8 },
   errorText: { color: Colors.error, fontSize: 13, flex: 1 },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 32 },

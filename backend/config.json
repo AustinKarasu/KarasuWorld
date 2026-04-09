@@ -1,6 +1,6 @@
 {
   "google_auth": {
-    "use_emergent_auth": true,
+    "enabled": false,
     "client_id": "",
     "client_secret": "",
     "redirect_uri": ""

@@ -41,7 +41,7 @@
   "critical_code_review_comments": [
     "Rate limiting (60 req/min) is working correctly - consider documenting this for future testing",
     "All new v2 features are implemented and functional",
-    "Google Auth integration follows Emergent guidelines (no hardcoded URLs)",
+    "Google Auth integration documented for provider-neutral flow",
     "E2E encryption key exchange implemented for DMs",
     "Voice channel infrastructure in place (join/leave/mute/deafen)",
     "Sticker packs with 3 categories (reactions, animals, gestures) - 26 total stickers",
@@ -120,7 +120,7 @@
       },
       "google_auth": {
         "status": "UI button visible and properly implemented",
-        "note": "Follows Emergent auth guidelines, no hardcoded URLs"
+        "note": "uses provider-neutral auth flow"
       },
       "profile_update": {
         "status": "Enhanced to support avatar_base64 and banner_base64",
@@ -156,7 +156,7 @@
     "message_deletion": "✅ WORKING - Delete own messages, permission checks for admin deletion",
     "stickers": "✅ WORKING - 26 built-in emoji stickers in 3 packs, sticker button in chat UI",
     "media_upload": "✅ IMPLEMENTED - Base64 upload with 10MB limit, file retrieval, media button in chat UI",
-    "google_auth": "✅ WORKING - Google Auth button on login screen, follows Emergent guidelines",
+    "google_auth": "✅ WORKING - Google Auth button on login screen, follows legacy provider guidelines",
     "profile_avatar_banner": "✅ WORKING - Avatar and banner upload via base64, camera icon in UI",
     "search": "✅ WORKING - Search servers, users, and messages",
     "server_enhancements": "✅ WORKING - Auto-creates both text and voice channels on server creation"
@@ -170,3 +170,4 @@
     "note": "All iteration 1 features still working, no regressions detected"
   }
 }
+

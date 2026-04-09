@@ -7,7 +7,7 @@ KarasuWorld is a Discord-inspired real-time communication and community-building
 - **Frontend**: Expo React Native (SDK 54) with expo-router, Socket.IO client, crypto-js (E2EE)
 - **Backend**: FastAPI with python-socketio for WebSocket, slowapi for rate limiting
 - **Database**: MongoDB (motor async driver)
-- **Auth**: JWT (email/password) + Emergent Google OAuth
+- **Auth**: JWT (email/password)
 - **Real-time**: Socket.IO for messaging, typing indicators, online status, voice signaling
 - **Encryption**: AES-256 for DM end-to-end encryption
 
@@ -16,7 +16,6 @@ KarasuWorld is a Discord-inspired real-time communication and community-building
 ### 1. Authentication
 - Email/password registration with 8-char minimum, input validation, XSS sanitization
 - JWT access tokens (7-day) + refresh tokens (30-day)
-- Google OAuth via Emergent Auth (configurable via config.json)
 - Rate limiting (60 req/min per IP)
 
 ### 2. Servers (Communities)
