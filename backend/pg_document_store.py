@@ -1,4 +1,5 @@
 import copy
+import json
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -327,7 +328,23 @@ class PGDatabase:
 
     async def connect(self):
         if self.pool is None:
-            self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=10)
+            async def _init_connection(conn: asyncpg.Connection):
+                await conn.set_type_codec(
+                    "json",
+                    schema="pg_catalog",
+                    encoder=json.dumps,
+                    decoder=json.loads,
+                    format="text",
+                )
+                await conn.set_type_codec(
+                    "jsonb",
+                    schema="pg_catalog",
+                    encoder=json.dumps,
+                    decoder=json.loads,
+                    format="text",
+                )
+
+            self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=10, init=_init_connection)
             await self._ensure_schema()
 
     async def _ensure_schema(self):
